@@ -22,3 +22,34 @@
 #Delete these comments before commit!
 #
 #Good luck.
+
+import random
+import time
+from dataclasses import dataclass
+
+@dataclass
+class Airplane:
+  name: str
+  wingsAngle: float
+
+  def __init__ (self, name):
+    self.name = name
+    self.wingsAngle = 0.0
+
+  def changeWingsAngle(self, angle):
+    self.wingsAngle += angle
+
+
+
+if __name__ == "__main__":
+  airplane = Airplane("First airplane")
+  i = 1
+  while 1:
+    rate_of_correction = 1
+    angle = random.gauss(0, 2*rate_of_correction)
+    airplane.changeWingsAngle(angle)
+    print(airplane.wingsAngle)
+    time.sleep(0.1)
+    i = i + 1
+    #break
+
