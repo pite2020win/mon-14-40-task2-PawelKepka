@@ -50,6 +50,13 @@ if __name__ == "__main__":
     airplane.changeWingsAngle(angle)
     print(airplane.wingsAngle)
     time.sleep(0.1)
+    if airplane.wingsAngle > 180:
+      print("upside down!")
+
+    #no time for user input 
     i = i + 1
-    #break
+    if i > 20:
+      break
+    
+    
 
