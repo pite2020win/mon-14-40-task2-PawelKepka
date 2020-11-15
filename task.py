@@ -1,55 +1,101 @@
-#
-#Flight simulator. 
-#Write a code in python that simulates the tilt correction of the plane (angle between plane wings and earth). 
-#The program should print out current orientation, and applied tilt correction.
-# (Tilt is "Roll" in this diagram https://www.novatel.com/assets/Web-Phase-2-2012/Solution-Pages/AttitudePlane.png)
-#The program should run in infinite loop, until user breaks the loop. 
-#Assume that plane orientation in every new simulation step is changing with random angle with gaussian distribution (the planes is experiencing "turbuence"). 
-# Hint: "random.gauss(0, 2*rate_of_correction)"
-#With every simulation step the orentation should be corrected, correction should be applied and printed out.
-#Try to expand your implementation as best as you can. 
-#Think of as many features as you can, and try implementing them.
-#
-#Try to expand your implementation as best as you can. 
-#Think of as many features as you can, and try implementing them.
-#Make intelligent use of pythons syntactic sugar (overloading, iterators, generators, etc)
-#Most of all: CREATE GOOD, RELIABLE, READABLE CODE.
-#The goal of this task is for you to SHOW YOUR BEST python programming skills.
-#Impress everyone with your skills, show off with your code.
-#
-#Your program must be runnable with command "python task.py".
-#Show some usecases of your library in the code (print some things)
-#Delete these comments before commit!
-#
-#Good luck.
-
 import random
 import time
-from dataclasses import dataclass
-
-@dataclass
-class Airplane:
-  name: str
-  wingsAngle: float
-
-  def __init__ (self, name):
-    self.name = name
-    self.wingsAngle = 0.0
-
-  def changeWingsAngle(self, angle):
-    self.wingsAngle += angle
-
-
-
+import logging
+from abc import ABC, abstractmethod
+ 
+ 
+logger = logging.getLogger('plane application')
+logger.setLevel(logging.DEBUG)
+ 
+stream_formatter = logging.Formatter('%(message)s')
+stream_logger = logging.StreamHandler()
+stream_logger.setLevel(logging.INFO)
+stream_logger.setFormatter(stream_formatter)
+logger.addHandler(stream_logger)
+ 
+file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_logger = logging.FileHandler('plane.log')
+file_logger.setLevel(logging.DEBUG)
+file_logger.setFormatter(file_formatter)
+logger.addHandler(file_logger)
+ 
+ 
+ 
+ 
+ 
+class Event(ABC):
+    pass
+ 
+#   @abstractmethod
+#   def a(self):
+#     pass
+ 
+class Turbulence(Event):
+    def generate(self):
+        return random.gauss(0, 2)
+ 
+ 
+class Correction(Event):
+    rate = 1
+ 
+    def correct_interference(self, angle, interference):
+        angle += interference
+        correction_value = self._get_correction_value()
+        angle += -1 * correction_value if angle > 0 else correction_value
+        return angle
+ 
+    def _get_correction_value(self):
+        # Some bussiness logic
+        return random.gauss(0, 1 * self.rate)
+ 
+ 
+ 
+class Environment:
+    turbulence = Turbulence()
+    wind_power = 0
+ 
+    def update(self):
+        wind_power = self.turbulence.generate()
+ 
+ 
+class Plane:
+    correction = Correction()
+    wings_angle = 0.0
+    name = None
+ 
+    def __init__ (self, name):
+        self.name = name
+ 
+    def correct_wings_angle(self, wind_power):
+        interference = self._get_interference(wind_power)
+        self.wings_angle = self.correction.correct_interference(self.wings_angle, interference)
+ 
+    def _get_interference(self, wind_power):
+        # Some bussiness logic
+ 
+        interference = wind_power
+ 
+        return interference
+ 
+ 
+ 
 if __name__ == "__main__":
-  airplane = Airplane("First airplane")
-  i = 1
-  while 1:
-    rate_of_correction = 1
-    angle = random.gauss(0, 2*rate_of_correction)
-    airplane.changeWingsAngle(angle)
-    print(airplane.wingsAngle)
-    time.sleep(0.1)
-    i = i + 1
-    #break
-
+    logger.info("Start of programm, to end press standard SIGINT")
+    logger.info("Plane is flying...")
+ 
+    env = Environment()
+    airplane = Plane("Airplane 275")
+ 
+    try:
+        while True:
+            env.update()
+            airplane.correct_wings_angle(env.wind_power)
+            print(airplane.wings_angle)
+            logger.debug("Angle: %s", airplane.wings_angle)
+            time.sleep(0.1)
+ 
+            if airplane.wings_angle > 180:
+                logger.info("Upside down!")
+                break
+    except KeyboardInterrupt:
+        logger.info("End of programm")
